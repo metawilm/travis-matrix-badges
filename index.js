@@ -240,7 +240,7 @@ function redirectToShieldsIo(state, res, etagValue) {
 function redirect(url, state, res, etagValue) {
     console.log("redirect: " + url);
     request.get(url, function(err, response, body) {
-	console.log("Response: " + response);
+	console.log("Response: " + response.statusCode);
 	if (err) {
 	    console.log("Request failed: " + err + " for: " + url);
 	    res.status(500).send(err);

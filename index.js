@@ -5,6 +5,7 @@ var temp    = require("temp");
 var http = require("http");
 var https = require("https");
 var request = require('request');
+var md5 = require('md5');
 
 var app = express();
 
@@ -20,7 +21,7 @@ app.get("/badge(*)", function(req, res) {
 	    };
     
     console.log('request /badge ' + JSON.stringify(r));
-    withBuild(r, res, function(branchBuild, jobs) {
+    withBuild(r, res, function(branchBuild, jobs, etagValue) {
 	
 	var foundMatches = [];
 	jobs.forEach(function (job) {
@@ -51,7 +52,7 @@ app.get("/badge(*)", function(req, res) {
 	    res.send('Too strict filter params: no matching jobs within buildId=' + branchBuild.buildId + '.');
 	    return;
 	} else {
-	    redirectToShieldsIo(foundMatches[0].jobState, res);
+	    redirectToShieldsIo(foundMatches[0].jobState, res, etagValue);
 	}
     });
 });
@@ -63,7 +64,7 @@ app.get("/table(*)", function(req, res) {
 	    };
     
     console.log('request /table ' + JSON.stringify(r));
-    withBuild(r, res, function(branchBuild, jobs) {
+    withBuild(r, res, function(branchBuild, jobs, etagValue) {
 	
 	var html = '<table><tr><th colspan="3">Last build: ' + branchBuild.finished_at.replace('T', ' ').replace('Z', ' ') + '</th></tr>';
 	jobs.forEach(function (job) {
@@ -92,7 +93,7 @@ app.get("/table(*)", function(req, res) {
 	html += "</table>";
 	    
 	screenShot(html, function (original, cleanupScreenShot) {
-	    writeFileToResponse(original, res, function(){
+	    writeFileToResponse(original, res, etagValue, function(){
 		cleanupScreenShot();
 	    });
 	});
@@ -143,10 +144,10 @@ function withBuild(r, res, buildIdJobsCallback) {
 	    return;
 	}
 
-	var cached = buildCache[options.url];
-	if (cached && (cached.branchBuild == branchBuild)) {
-	    console.log("Using cache: " + options.url);
-	    buildIdJobsCallback(branchBuild, cached.jobs);
+	var etagValue = md5(buildCache);
+	if (req.get('If-None-Match') && req.get('If-None-Match') == etagValue) {
+	    console.log('Etag the same -> return 304');
+	    res.status(304);
 	    return;
 	}
 	
@@ -175,7 +176,7 @@ function withBuild(r, res, buildIdJobsCallback) {
 
 		console.log("Storing cache: " + options.url)
 		buildCache[options.url] = {'branchBuild': branchBuild, 'jobs': jobs};
-		buildIdJobsCallback(branchBuild, jobs);
+		buildIdJobsCallback(branchBuild, jobs, etagValue);
 	    }
 	});
     });
@@ -189,12 +190,12 @@ function createTempPng(){
   return temp.path({suffix: '.png'});
 }
 
-function writeFileToResponse(file, resp, callback){
-  resp.writeHead(200, { 'Content-Type': 'image/png' });
-  fs.readFile(file, function(err, data){
-    resp.end(data);
-    callback();
-  });
+function writeFileToResponse(file, resp, etagValue, callback){
+    resp.writeHead(200, { 'Content-Type': 'image/png', 'ETag': etagValue });
+    fs.readFile(file, function(err, data){
+	resp.end(data);
+	callback();
+    });
 }
 
 function cleanupTempFile(file){
@@ -219,28 +220,29 @@ function screenShot(html, callback){
   });
 }
 
-function redirectToShieldsIo(state, res) {
+function redirectToShieldsIo(state, res, etagValue) {
   if (state == "passed") {
-    redirect("https://img.shields.io/badge/build-passing-brightgreen.svg", state, res)
+      redirect("https://img.shields.io/badge/build-passing-brightgreen.svg", state, res, etagValue)
   } else if (state == "failed") {
-    redirect("https://img.shields.io/badge/build-failure-red.svg", state, res);
+      redirect("https://img.shields.io/badge/build-failure-red.svg", state, res, etagValue);
   } else {
     var url = "https://img.shields.io/badge/build-" + state + "-yellow.svg";
-    redirect(url, state, res);
+      redirect(url, state, res, etagValue);
   }
 }
 
-function redirect(url, state, res) {
+function redirect(url, state, res, etagValue) {
     console.log("redirect: " + url);
   request.get(url, function(err, response, body) {
     if (err) {
       res.status(500).send(err);
     } else {
-	res.header("Cache-Control", "no-cache, must-revalidate");
-	res.header("Pragma", "no-cache");
-	res.header("Expires", "Thu, 01 Jan 1970 00:00:00 GMT");
-	res.header("ETag", state);
-	res.header("content-type", "image/svg+xml;charset=utf-8");
+	//res.header("Cache-Control", "no-cache, must-revalidate");
+	//res.header("Pragma", "no-cache");
+	//res.header("Expires", "Thu, 01 Jan 1970 00:00:00 GMT");
+	//res.header("ETag", state);
+	//res.header("content-type", "image/svg+xml;charset=utf-8");
+	res.header("ETag", etagValue);
 	res.status(response.statusCode).send(body);
     }
   });

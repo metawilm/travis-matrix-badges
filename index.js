@@ -16,7 +16,7 @@ app.get("/repos/(*)", function(req, res) {
     console.log('WB')
     
     var r = {'repo': req.query.repo, 'branch': req.query.branch, 'jobNr': req.query.jobNr, 'envContains': req.query.envContains };
-    console.log('request: ' + r);
+    console.log('request: ' + JSON.stringify(r));
     
     r.repoBranch = r.repo + (r.branch ? ('/' + r.branch) : '');
     
@@ -27,7 +27,7 @@ app.get("/repos/(*)", function(req, res) {
             'Accept': 'application/vnd.travis-ci.2+json'
 	}
     };
-    
+    console.log("url: " + options.url)
     request(options, function (error, response, body) {
 	if (error || response.statusCode != 200) {
 	    res.status(400);

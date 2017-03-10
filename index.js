@@ -19,7 +19,7 @@ app.get("/badge(*)", function(req, res) {
 	     'jobNr': req.query.jobNr,
 	     'envContains': req.query.envContains,
 	     
-	     'ifNoneMatch': req.get('If-None-Match'),
+	     'ifNoneMatch': req.get('If-None-Match')
 	    };
     
     console.log('request /badge ' + JSON.stringify(r));

@@ -17,6 +17,11 @@ app.get("/repos/(*)", function(req, res) {
     
     var r = {'repo': req.query.repo, 'branch': req.query.branch, 'jobNr': req.query.jobNr, 'envContains': req.query.envContains };
     console.log('request: ' + JSON.stringify(r));
+
+    if (!r.repo) {
+	res.status(400);
+	res.send('Repository not provided (query string param: "repo")');
+    }
     
     r.repoBranch = r.repo + (r.branch ? ('/' + r.branch) : '');
     
@@ -31,14 +36,14 @@ app.get("/repos/(*)", function(req, res) {
     request(options, function (error, response, body) {
 	if (error || response.statusCode != 200) {
 	    res.status(400);
-	    res.send('Branch build id not found');
+	    res.send('Repository or branch not found: ' + r.repoBranch);
 	}
 	
 	//console.log(body); 
 	var buildId = JSON.parse(body).branch.id;
 	if (!buildId){
 	    res.status(400);
-	    res.send('Branch build id not found');
+	    res.send('Within repository ' + r.repoBranch + ' no Travis build was found');
 	}
 	
 	var options2 = {
@@ -51,12 +56,14 @@ app.get("/repos/(*)", function(req, res) {
 	request(options2, function (error2, response2, body2) {
 	    if (error2 || response2.statusCode != 200) {
 		res.status(400);
-		res.send('Error retrieving build');
+		res.send('Within repository ' + r.repoBranch +
+			 ' could not retrieve build details for buildId ' + buildId);
 	    } else {
 		var jobs = JSON.parse(body2).jobs;
 		if (!jobs){
 		    res.status(400);
-		    res.send('Jobs not found in build');
+		    res.send('Within repository ' + r.repoBranch +
+			     ' the build ' + buildIdNo + ' has no jobs');
 		}
 
 		jobs.forEach(function (job) {

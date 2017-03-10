@@ -218,7 +218,7 @@ function screenShot(html, callback){
 	    height: '1000'
 	},
 	captureSelector: '#myTable',
-        siteType:'html'
+        siteType: 'html'
     };
     webshot(html, original, options, function(err){
 	console.log("webShot: err=" + err);

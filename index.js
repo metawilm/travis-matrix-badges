@@ -33,7 +33,10 @@ app.get("/repos/(*)", function(req, res) {
 	res.send('Repository not provided (query string param: "repo")');
     }
 
-    r.repoBranch = r.user + '/' + r.repo + '/' + r.branch;
+    r.repoBranch = r.user + '/' + r.repo;
+    if (r.branch) {
+	repoBranch += '/branches/' + r.branch;
+    }
     
     var html = "<br/><table><tr><th>Builds</th></tr>";
     var options = {

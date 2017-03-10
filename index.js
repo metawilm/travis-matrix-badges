@@ -81,7 +81,7 @@ app.get("/repos/(*)", function(req, res) {
 			     ' the build ' + buildIdNo + ' has no jobs');
 		}
 
-		var html = '<table><tr><th>Build #' + buildId + ' (' + branch.finished_at + '</th></tr>';
+		var html = '<table><tr><th colspan="3">Last build: ' + branch.finished_at + '</th></tr>';
 		
 		jobs.forEach(function (job) {
 		    var state = job.state;
@@ -90,6 +90,7 @@ app.get("/repos/(*)", function(req, res) {
 		    var shortNumber = (dot >= 0) ? number.slice(dot + 1) : number;
 		    
 		    if (r.jobNr && (r.jobNr != shortNumber)) {
+			console.log('Job ' + job.id + ' has shortNumber=' + shortNumber + ' != r.jobNr=' + r.jobNr); 
 			return;
 		    }
 		    if (r.envContains && (job.config.env.indexOf(r.envContains) == -1)) {

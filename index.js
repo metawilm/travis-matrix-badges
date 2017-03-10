@@ -89,14 +89,10 @@ app.get("/repos/(*)", function(req, res) {
 
 		var html = '<table><tr><th colspan="3">Last build: ' + branch.finished_at + '</th></tr>';
 		
-		var foundMatch = false;
-		    
+		var foundMatches = [];
+		
 		jobs.forEach(function (job) {
 
-		    if (foundMatch) {
-			return;
-		    }
-		    var state = job.state;
 		    var number = job.number;
 		    var dot = number.indexOf(".");
 		    var shortNumber = (dot >= 0) ? number.slice(dot + 1) : number;
@@ -110,28 +106,33 @@ app.get("/repos/(*)", function(req, res) {
 		    }
 
 		    if (r.jobNr || r.envContains) {
-			console.log('Found matching job #' + job.number + ' (' + state + ') with jobNr=' + shortNumber + ' and env=' + job.config.env);
-			foundMatch = true;
-			redirectToShieldsIo(state, res);
+			console.log('Found matching job #' + job.number + ' (' + job.state + ') with jobNr=' + shortNumber + ' and env=' + job.config.env);
+			foundMatches.push({'jobNumber': job.number, 'jobState': job.state});
 		    } else {
 			html += "<tr><td>" + number + "</td>"
 			html += "<td>" + (job.config.env ? job.config.env : '?') + "</td>"
 			// html += " " + JSON.stringify(job.config)
 			html += "<td>"
-			if (state == "passed"){
+			if (job.state == "passed"){
 			    html += "<span style='color:green;'>passed</span>";
-			} else if (state == "failed"){
+			} else if (job.state == "failed"){
 			    html += "<span style='color:red;'>failed</span>";
-			} else if (state == "cancelled"){
+			} else if (job.state == "cancelled"){
 			    html += "<span style='color:salmon;'>cancelled</span>";
 			} else {
-			    html += state;
+			    html += job.state;
 			}
 			html += "</td></tr>";
 		    }
 		});
 
-		if (!foundMatch) {
+		if (foundMatches.length > 1) {
+		    res.status(400);
+		    res.send('Ambiguous filter params: multiple matching jobs within buildId=' + buildId + ':\n' + JSON.stringify(foundMatches));
+		    return;
+		} else if (foundMatches.length == 1) {
+		    redirectToShieldsIo(foundMatches.get(0).jobState, res);
+		} else {
 		    if (r.jobNr) {
 			res.status(400);
 			res.send('jobNr ' + r.jobNr + ' not found, within buildId: ' + buildId);
@@ -144,7 +145,7 @@ app.get("/repos/(*)", function(req, res) {
 		    }
 
 		    html += "</table>";
-
+		    
 		    screenShot(html, function(original, cleanupScreenShot){
 			writeFileToResponse(original, res, function(){
 			    cleanupScreenShot();

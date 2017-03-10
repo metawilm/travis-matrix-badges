@@ -19,7 +19,7 @@ app.get("/badge(*)", function(req, res) {
 	     'envContains': req.query.envContains
 	    };
     console.log('request /badge ' + JSON.stringify(r));
-    withBuild(r, res, function(buildId, jobs) {
+    withBuild(r, res, function(branchBuild, jobs) {
 	var foundMatches = [];
 	jobs.forEach(function (job) {
 	    var number = job.number;
@@ -42,11 +42,11 @@ app.get("/badge(*)", function(req, res) {
 
 	if (foundMatches.length > 1) {
 	    res.status(400);
-	    res.send('Ambiguous filter params: multiple matching jobs within buildId=' + buildId + ': ' + JSON.stringify(foundMatches));
+	    res.send('Ambiguous filter params: multiple matching jobs within buildId=' + branchBuild.buildId + ': ' + JSON.stringify(foundMatches));
 	    return;
 	} else if (foundMatches.length == 0) {
 	    res.status(400);
-	    res.send('Too strict filter params: no matching jobs within buildId=' + buildId + '.');
+	    res.send('Too strict filter params: no matching jobs within buildId=' + branchBuild.buildId + '.');
 	    return;
 	} else {
 	    redirectToShieldsIo(foundMatches[0].jobState, res);
@@ -60,9 +60,9 @@ app.get("/table(*)", function(req, res) {
 	     'branch': (req.query.branch || 'master')
 	    };
     console.log('request /table ' + JSON.stringify(r));
-    withBuild(r, res, function(buildId, jobs) {
+    withBuild(r, res, function(branchBuild, jobs) {
 	
-	var html = '<table><tr><th colspan="3">Last build: ' + r.branch.finished_at.replace('T', ' ').replace('Z', ' ') + '</th></tr>';
+	var html = '<table><tr><th colspan="3">Last build: ' + branchBuild.finished_at.replace('T', ' ').replace('Z', ' ') + '</th></tr>';
 	jobs.forEach(function (job) {
 	    
 	    var number = job.number;
@@ -128,8 +128,8 @@ function withBuild(r, res, buildIdJobsCallback) {
 	    return;
 	}
 	
-	var branch = JSON.parse(body).branch;
-	var buildId = branch.id;
+	var branchBuild = JSON.parse(body).branch;
+	var buildId = branchBuild.id;
 	if (!buildId){
 	    res.status(400);
 	    res.send('Within repository ' + r.repoBranch + ' no Travis build was found');
@@ -159,7 +159,7 @@ function withBuild(r, res, buildIdJobsCallback) {
 		    return;
 		}
 
-		buildIdJobsCallback(buildId, jobs);
+		buildIdJobsCallback(branchBuild, jobs);
 	    }
 	});
     });

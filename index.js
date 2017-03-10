@@ -69,7 +69,7 @@ request(options, function (error, response, body) {
              foundRequestedJobNumber = true;
              redirectToShieldsIo(state, res);
            }
-           html += "<td>" + number + " " + job.config
+           html += "<td>" + number + " " + JSON.stringify(job.config)
            if(state == "passed"){
              html += "<span style='color:green;'>passed</span>";
            } else if (state == "failed"){

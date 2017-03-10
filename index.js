@@ -19,7 +19,8 @@ app.get("/repos/(*)", function(req, res) {
 	     'repo': req.query.repo,
 	     'branch': (req.query.branch || 'master'),
 	     'jobNr': req.query.jobNr,
-	     'envContains': req.query.envContains
+	     'envContains': req.query.envContains,
+	     'label': req.query.label
 	    };
     console.log('request: ' + JSON.stringify(r));
 
@@ -87,7 +88,7 @@ app.get("/repos/(*)", function(req, res) {
 		    return;
 		}
 
-		var html = '<table><tr><th colspan="3">Last build: ' + branch.finished_at + '</th></tr>';
+		var html = '<table><tr><th colspan="3">Last build: ' + branch.finished_at.replace('T', ' ').replace('Z', ' ') + '</th></tr>';
 		
 		var foundMatches = [];
 		
@@ -109,8 +110,8 @@ app.get("/repos/(*)", function(req, res) {
 			console.log('Found matching job #' + job.number + ' (' + job.state + ') with jobNr=' + shortNumber + ' and env=' + job.config.env);
 			foundMatches.push({'jobNumber': job.number, 'jobEnv': job.config.env, 'jobState': job.state});
 		    } else {
-			html += "<tr><td>" + number + "</td>"
-			html += "<td>" + (job.config.env ? job.config.env : '?') + "</td>"
+			// html += "<tr><td>" + number + "</td>"
+			html += "<td>" + (((jobs.length > 1) && job.config.env) ? job.config.env : '') + "</td>"
 			// html += " " + JSON.stringify(job.config)
 			html += "<td>"
 			if (job.state == "passed"){

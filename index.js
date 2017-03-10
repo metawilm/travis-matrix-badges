@@ -150,6 +150,7 @@ function withBuild(r, res, buildIdJobsCallback) {
 	    if (r.ifNoneMatch == etagValue) {
 		console.log('Etag the same -> return 304: ' + etagValue);
 		res.status(304);
+		res.send('');
 		return;
 	    } else {
 		console.log('Browser and local etag mismatch -> calulate response');

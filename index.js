@@ -34,12 +34,13 @@ app.get("/repos/(*)", function(req, res) {
     };
     console.log("url: " + options.url)
     request(options, function (error, response, body) {
+	console.log('[' + response.statusCode + '] ' + error + ' ' + body); 
 	if (error || response.statusCode != 200) {
 	    res.status(400);
 	    res.send('Repository or branch not found: ' + r.repoBranch);
 	}
 	
-	//console.log(body); 
+	
 	var buildId = JSON.parse(body).branch.id;
 	if (!buildId){
 	    res.status(400);
@@ -54,6 +55,7 @@ app.get("/repos/(*)", function(req, res) {
 	};
 		
 	request(options2, function (error2, response2, body2) {
+	    console.log('[' + response2.statusCode + '] ' + error2 + ' ' + body2); 
 	    if (error2 || response2.statusCode != 200) {
 		res.status(400);
 		res.send('Within repository ' + r.repoBranch +

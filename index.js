@@ -96,9 +96,12 @@ app.get("/repos/(*)", function(req, res) {
 		    if (r.envContains && (job.config.env.indexOf(r.envContains) == -1)) {
 			return;
 		    }
+
+		    var foundMatch = false;
 		    
 		    if (r.jobNr || r.envContains) {
 			console.log('Found matching job #' + job.number + ' (' + state + ') with jobNr=' + shortNumber + ' and env=' + job.config.env);
+			foundMatch = true;
 			redirectToShieldsIo(state, res);
 		    } else {
 			html += "<tr><td>" + number + "</td>"
@@ -117,14 +120,16 @@ app.get("/repos/(*)", function(req, res) {
 			html += "</td></tr>";
 		    }
 		});
-		
-		if (r.jobNr) {
-		    res.status(400);
-		    res.send('jobNr ' + r.jobNr + ' not found, within buildId: ' + buildId);
-		}
-		if (r.envContains) {
-		    res.status(400);
-		    res.send('No job has "' + r.envContains + '" in its env, within buildId: ' + buildId);
+
+		if (!foundMatch) {
+		    if (r.jobNr) {
+			res.status(400);
+			res.send('jobNr ' + r.jobNr + ' not found, within buildId: ' + buildId);
+		    }
+		    if (r.envContains) {
+			res.status(400);
+			res.send('No job has "' + r.envContains + '" in its env, within buildId: ' + buildId);
+		    }
 		}
 	    }
 	    html += "</table>";

@@ -13,108 +13,114 @@ app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/public'));
 //  /^\/(.+)/
 app.get("/repos/(*)", function(req, res) {
-  var self = this;
-  var repo = req.params[0];
-  var branchesIndex = repo.indexOf("branches/");
-  var requestedJobNumber = "";
-  if (branchesIndex >= 0) {
-    var branches =  repo.slice(branchesIndex);
-    var tokens = branches.split("/");
-    if (tokens.length == 3) {
-      requestedJobNumber = tokens[2];
-      repo = repo.slice(0, repo.lastIndexOf("/"));
-    }
-  }
-  //console.log(repo);
-  var html = "<br/><table><tr><th>Builds</th></tr>";
-   var options = {
-    url: "https://api.travis-ci.org/repos/" + repo,
-    headers: {
-         'Accept': 'application/vnd.travis-ci.2+json'
-       }
-   };
-request(options, function (error, response, body) {
-  if (!error && response.statusCode == 200) {
-    //console.log(body); 
-    var buildId = JSON.parse(body).branch.id;
-    if(!buildId){
-      res.status(400);
-      url = req.url;
-      res.send('Branch build id not found');
-    }
-    var options2 = {
-       url: "https://api.travis-ci.org/builds/" + buildId,
-       headers: {
-         'Accept': 'application/vnd.travis-ci.2+json'
-       }
-     };
-     //console.log(options2.url);
-    request(options2, function (error2, response2, body2) {
-      if (!error2 && response2.statusCode == 200) {
-       //console.log(body2);
-       var jobs = JSON.parse(body2).jobs;
-       if (!jobs){
-         res.status(400);
-         url = req.url;
-         res.send('Jobs not found in build');
-       }
-       var foundRequestedJobNumber = false;
-       jobs.forEach(function(job) {
-           var state = job.state;
-           var number = job.number;
-           var dot = number.indexOf(".");
-           var shortNumber = dot >= 0 ? number.slice(dot + 1) : number;
-           if (requestedJobNumber != "" && requestedJobNumber != shortNumber) return;
-           if (requestedJobNumber != ""){
-             foundRequestedJobNumber = true;
-             redirectToShieldsIo(state, res);
-           }
-           html += "<td>" + number + "</td>"
-	   html += "<td>" + job.config.env + "</td>"
-	   // html += " " + JSON.stringify(job.config)
-	   html += "<td>"
-           if(state == "passed"){
-             html += "<span style='color:green;'>passed</span>";
-           } else if (state == "failed"){
-             html += "<span style='color:red;'>failed</span>";
-           } else {
-             html += state;
-           }
-            + state;
-           html += "</td></tr>";
-       });
-       if (requestedJobNumber != "") {
-         if (foundRequestedJobNumber) return;
-         res.status(400);
-         url = req.url;
-         res.send('Job Number not found');
-         return;
-       }
-       //console.log(html);
-       html += "</table>";
-       html += "<br/>Build ID: " + buildId;
-       screenShot(html, function(original, cleanupScreenShot){
-          writeFileToResponse(original, res, function(){
-            cleanupScreenShot();
-          });
-       });
-       } else {
-          res.status(400);
-          url = req.url;
-          res.send('Error retrieving build');
-       }
-       
-    });
+    
+    var r = {'repo': req.query.repo, 'branch': req.query.branch, 'jobNr': req.query.jobNr, 'envContains': envContains };
+    console.log('request: ' + request);
+    
+    var r.repoBranch = r.repo + (r.branch ? ('/' + r.branch) : '');
+    
+    var html = "<br/><table><tr><th>Builds</th></tr>";
+    var options = {
+	url: "https://api.travis-ci.org/repos/" + r.repoBranch,
+	headers: {
+            'Accept': 'application/vnd.travis-ci.2+json'
+	}
+    };
+    
+    request(options, function (error, response, body) {
+	if (error || response.statusCode != 200) {
+	    res.status(400);
+	    url = req.url;
+	    res.send('Branch build id not found');
+	}
+	
+	//console.log(body); 
+	var buildId = JSON.parse(body).branch.id;
+	if (!buildId){
+	    res.status(400);
+	    url = req.url;
+	    res.send('Branch build id not found');
+	}
+	
+	var options2 = {
+	    url: "https://api.travis-ci.org/builds/" + buildId,
+	    headers: {
+		'Accept': 'application/vnd.travis-ci.2+json'
+	    }
+	};
+		
+	request(options2, function (error2, response2, body2) {
+	    if (error2 || response2.statusCode != 200) {
+		res.status(400);
+		url = req.url;
+		res.send('Error retrieving build');
+	    } else {
+		var jobs = JSON.parse(body2).jobs;
+		if (!jobs){
+		    res.status(400);
+		    url = req.url;
+		    res.send('Jobs not found in build');
+		}
 
-  } else {
-    res.status(400);
-    url = req.url;
-    res.send('Branch build id not found');
+		jobs.forEach(function (job) {
+		    var state = job.state;
+		    var number = job.number;
+		    var dot = number.indexOf(".");
+		    var shortNumber = (dot >= 0) ? number.slice(dot + 1) : number;
+		    
+		    if (r.jobNr && (r.jobNr != shortNumber)) {
+			return;
+		    }
+		    if (r.envContains && (job.config.env.indexOf(r.envContains) == -1)) {
+			return;
+		    }
+		    
+		    if (r.jobNr || r.envContains) {
+			console.log('Found matching job #' + job.number + ' (' + state + ') with jobNr=' + shortNumber + ' and env=' + job.config.env);
+			redirectToShieldsIo(state, res);
+		    } else {
+			html += "<tr><td>" + number + "</td>"
+			html += "<td>" + job.config.env + "</td>"
+			// html += " " + JSON.stringify(job.config)
+			html += "<td>"
+			if (state == "passed"){
+			    html += "<span style='color:green;'>passed</span>";
+			} else if (state == "failed"){
+			    html += "<span style='color:red;'>failed</span>";
+			} else {
+			    html += state;
+			}
+			html += "</td></tr>";
+		    }
+		});
+		
+		if (r.jobNr) {
+		    res.status(400);
+		    url = req.url;
+		    res.send('jobNr ' + r.jobNr + ' not found, within buildId: ' + buildId);
+		}
+		if (r.envContains) {
+		    res.status(400);
+		    url = req.url;
+		    res.send('No job has "' + r.envContains + '" in its env, within buildId: ' + buildId);
+		}
+	    }
+	    html += "</table>";
+	    html += "<br/>Build ID: " + buildId;
+	    screenShot(html, function(original, cleanupScreenShot){
+		writeFileToResponse(original, res, function(){
+		    cleanupScreenShot();
+		});
+	    });
+	}
+		
+	       };
+	
     }
-}) 
-   
-  
+    })
 
+    
+    
 });
   
 app.listen(app.get('port'), function() {

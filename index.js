@@ -69,7 +69,10 @@ request(options, function (error, response, body) {
              foundRequestedJobNumber = true;
              redirectToShieldsIo(state, res);
            }
-           html += "<td>" + number + " " + JSON.stringify(job.config)
+           html += "<td>" + number + "</td>"
+	   html += "<td>" + job.config.env + "</td>"
+	   // html += " " + JSON.stringify(job.config)
+	   html += "<td>"
            if(state == "passed"){
              html += "<span style='color:green;'>passed</span>";
            } else if (state == "failed"){
@@ -140,7 +143,7 @@ function screenShot(html, callback){
   var original = createTempPng();
   var options = {
     shotSize: {
-      width: 1000
+      width: 'all'
     , height: 'all' 
     }
     , siteType:'html'

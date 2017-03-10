@@ -15,8 +15,11 @@ app.get("/badge(*)", function(req, res) {
     var r = {'user': req.query.user,
 	     'repo': req.query.repo,
 	     'branch': (req.query.branch || 'master'),
+
 	     'jobNr': req.query.jobNr,
 	     'envContains': req.query.envContains
+	     
+	     'ifNoneMatch': req.get('If-None-Match'),
 	    };
     
     console.log('request /badge ' + JSON.stringify(r));
@@ -59,7 +62,8 @@ app.get("/badge(*)", function(req, res) {
 app.get("/table(*)", function(req, res) {
     var r = {'user': req.query.user,
 	     'repo': req.query.repo,
-	     'branch': (req.query.branch || 'master')
+	     'branch': (req.query.branch || 'master'),
+	     'ifNoneMatch': req.get('If-None-Match')
 	    };
     
     console.log('request /table ' + JSON.stringify(r));
@@ -144,8 +148,8 @@ function withBuild(r, res, buildIdJobsCallback) {
 	}
 
 	var etagValue = buildCache.finished_at;
-	if (req.get('If-None-Match') && req.get('If-None-Match') == etagValue) {
-	    console.log('Etag the same -> return 304');
+	if (r.ifNoneMatch && (r.ifNoneMatch == etagValue)) {
+	    console.log('Etag the same -> return 304: ' + etagValue);
 	    res.status(304);
 	    return;
 	}

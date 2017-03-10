@@ -249,7 +249,7 @@ function redirect(url, state, res, etagValue) {
 	    //res.header("Pragma", "no-cache");
 	    //res.header("Expires", "Thu, 01 Jan 1970 00:00:00 GMT");
 	    //res.header("ETag", state);
-	    //res.header("content-type", "image/svg+xml;charset=utf-8");
+	    res.header("content-type", "image/svg+xml;charset=utf-8");
 	    res.header("ETag", etagValue);
 	    res.status(response.statusCode).send(body);
 	}

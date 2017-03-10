@@ -131,7 +131,7 @@ app.get("/repos/(*)", function(req, res) {
 		    res.send('Ambiguous filter params: multiple matching jobs within buildId=' + buildId + ':\n' + JSON.stringify(foundMatches));
 		    return;
 		} else if (foundMatches.length == 1) {
-		    redirectToShieldsIo(foundMatches.get(0).jobState, res);
+		    redirectToShieldsIo(foundMatches[0].jobState, res);
 		} else {
 		    if (r.jobNr) {
 			res.status(400);

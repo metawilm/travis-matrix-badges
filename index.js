@@ -5,7 +5,6 @@ var temp    = require("temp");
 var http = require("http");
 var https = require("https");
 var request = require('request');
-var md5 = require('md5');
 
 var app = express();
 
@@ -144,7 +143,7 @@ function withBuild(r, res, buildIdJobsCallback) {
 	    return;
 	}
 
-	var etagValue = md5(buildCache);
+	var etagValue = buildCache.finished_at;
 	if (req.get('If-None-Match') && req.get('If-None-Match') == etagValue) {
 	    console.log('Etag the same -> return 304');
 	    res.status(304);

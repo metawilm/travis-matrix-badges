@@ -16,7 +16,7 @@ app.get("/repos/(*)", function(req, res) {
     console.log('WB')
     
     var r = {'repo': req.query.repo, 'branch': req.query.branch, 'jobNr': req.query.jobNr, 'envContains': req.query.envContains };
-    console.log('request: ' + request);
+    console.log('request: ' + r);
     
     r.repoBranch = r.repo + (r.branch ? ('/' + r.branch) : '');
     
@@ -31,7 +31,6 @@ app.get("/repos/(*)", function(req, res) {
     request(options, function (error, response, body) {
 	if (error || response.statusCode != 200) {
 	    res.status(400);
-	    url = req.url;
 	    res.send('Branch build id not found');
 	}
 	
@@ -39,7 +38,6 @@ app.get("/repos/(*)", function(req, res) {
 	var buildId = JSON.parse(body).branch.id;
 	if (!buildId){
 	    res.status(400);
-	    url = req.url;
 	    res.send('Branch build id not found');
 	}
 	
@@ -53,13 +51,11 @@ app.get("/repos/(*)", function(req, res) {
 	request(options2, function (error2, response2, body2) {
 	    if (error2 || response2.statusCode != 200) {
 		res.status(400);
-		url = req.url;
 		res.send('Error retrieving build');
 	    } else {
 		var jobs = JSON.parse(body2).jobs;
 		if (!jobs){
 		    res.status(400);
-		    url = req.url;
 		    res.send('Jobs not found in build');
 		}
 
@@ -97,12 +93,10 @@ app.get("/repos/(*)", function(req, res) {
 		
 		if (r.jobNr) {
 		    res.status(400);
-		    url = req.url;
 		    res.send('jobNr ' + r.jobNr + ' not found, within buildId: ' + buildId);
 		}
 		if (r.envContains) {
 		    res.status(400);
-		    url = req.url;
 		    res.send('No job has "' + r.envContains + '" in its env, within buildId: ' + buildId);
 		}
 	    }

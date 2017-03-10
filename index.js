@@ -38,7 +38,6 @@ app.get("/repos/(*)", function(req, res) {
 	r.repoBranch += '/branches/' + r.branch;
     }
     
-    var html = "<br/><table><tr><th>Builds</th></tr>";
     var options = {
 	url: "https://api.travis-ci.org/repos/" + r.repoBranch,
 	headers: {
@@ -53,8 +52,8 @@ app.get("/repos/(*)", function(req, res) {
 	    res.send('Repository or branch not found: ' + r.repoBranch);
 	}
 	
-	
-	var buildId = JSON.parse(body).branch.id;
+	var branch = JSON.parse(body).branch;
+	var buildId = branch.id;
 	if (!buildId){
 	    res.status(400);
 	    res.send('Within repository ' + r.repoBranch + ' no Travis build was found');
@@ -66,7 +65,8 @@ app.get("/repos/(*)", function(req, res) {
 		'Accept': 'application/vnd.travis-ci.2+json'
 	    }
 	};
-		
+
+	console.log('url 2: ' + options2.url);
 	request(options2, function (error2, response2, body2) {
 	    console.log('[' + response2.statusCode + '] ' + error2 + ' ' + body2); 
 	    if (error2 || response2.statusCode != 200) {
@@ -81,6 +81,8 @@ app.get("/repos/(*)", function(req, res) {
 			     ' the build ' + buildIdNo + ' has no jobs');
 		}
 
+		var html = '<table><tr><th>Build #' + buildNo + ' (' + branch.finished_at + '</th></tr>';
+		
 		jobs.forEach(function (job) {
 		    var state = job.state;
 		    var number = job.number;
@@ -99,13 +101,15 @@ app.get("/repos/(*)", function(req, res) {
 			redirectToShieldsIo(state, res);
 		    } else {
 			html += "<tr><td>" + number + "</td>"
-			html += "<td>" + job.config.env + "</td>"
+			html += "<td>" + (job.config.env ? job.config.env : '?') + "</td>"
 			// html += " " + JSON.stringify(job.config)
 			html += "<td>"
 			if (state == "passed"){
 			    html += "<span style='color:green;'>passed</span>";
 			} else if (state == "failed"){
 			    html += "<span style='color:red;'>failed</span>";
+			} else if (state == "cancelled"){
+			    html += "<span style='color:salmon;'>cancelled</span>";
 			} else {
 			    html += state;
 			}
@@ -123,7 +127,7 @@ app.get("/repos/(*)", function(req, res) {
 		}
 	    }
 	    html += "</table>";
-	    html += "<br/>Build ID: " + buildId;
+	    
 	    screenShot(html, function(original, cleanupScreenShot){
 		writeFileToResponse(original, res, function(){
 		    cleanupScreenShot();

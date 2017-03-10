@@ -212,10 +212,11 @@ function cleanupTempFile(file){
 
 function screenShot(html, callback){
   var original = createTempPng();
-  var options = {
-    shotSize: {
-	width: '300',
-	height: '1000',
+    var options = {
+	shotSize: {
+	    width: '300',
+	    height: '1000'
+	},
 	captureSelector: '#myTable'
     }
     , siteType:'html'

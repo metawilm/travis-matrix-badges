@@ -214,16 +214,17 @@ function screenShot(html, callback){
   var original = createTempPng();
   var options = {
     shotSize: {
-      width: '250l'
+      width: '300'
     , height: 'all' 
     }
     , siteType:'html'
   }
-  webshot(html, original, options, function(err){
-    callback(original, function(){
-      cleanupTempFile(original);
+    webshot(html, original, options, function(err){
+	console.log("webShot: err=" + erro);
+	callback(original, function(){
+	    cleanupTempFile(original);
+	});
     });
-  });
 }
 
 function redirectToShieldsIo(state, res, etagValue) {

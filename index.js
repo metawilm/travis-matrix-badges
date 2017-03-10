@@ -217,10 +217,9 @@ function screenShot(html, callback){
 	    width: '300',
 	    height: '1000'
 	},
-	captureSelector: '#myTable'
-    }
-    , siteType:'html'
-  }
+	captureSelector: '#myTable',
+        siteType:'html'
+    };
     webshot(html, original, options, function(err){
 	console.log("webShot: err=" + err);
 	callback(original, function(){

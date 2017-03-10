@@ -83,6 +83,8 @@ app.get("/repos/(*)", function(req, res) {
 
 		var html = '<table><tr><th colspan="3">Last build: ' + branch.finished_at + '</th></tr>';
 		
+		var foundMatch = false;
+		    
 		jobs.forEach(function (job) {
 		    var state = job.state;
 		    var number = job.number;
@@ -97,8 +99,6 @@ app.get("/repos/(*)", function(req, res) {
 			return;
 		    }
 
-		    var foundMatch = false;
-		    
 		    if (r.jobNr || r.envContains) {
 			console.log('Found matching job #' + job.number + ' (' + state + ') with jobNr=' + shortNumber + ' and env=' + job.config.env);
 			foundMatch = true;
@@ -130,9 +130,10 @@ app.get("/repos/(*)", function(req, res) {
 			res.status(400);
 			res.send('No job has "' + r.envContains + '" in its env, within buildId: ' + buildId);
 		    }
+
+		    html += "</table>";
 		}
 	    }
-	    html += "</table>";
 	    
 	    screenShot(html, function(original, cleanupScreenShot){
 		writeFileToResponse(original, res, function(){

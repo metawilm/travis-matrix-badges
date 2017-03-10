@@ -215,7 +215,7 @@ function screenShot(html, callback){
   var options = {
     shotSize: {
 	width: '300',
-	height: 'all',
+	height: '1000',
 	captureSelector: '#myTable'
     }
     , siteType:'html'

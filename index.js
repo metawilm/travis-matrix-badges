@@ -103,9 +103,6 @@ app.get("/table(*)", function(req, res) {
     });
 });
 
-// Mapping: url -> {'branchBuild.Finished_at': '<datetime>', 'jobs': jobs}
-var buildCache = {};
-
 function withBuild(r, res, buildIdJobsCallback) {
     if (!r.user) {
 	res.status(400);
@@ -147,7 +144,7 @@ function withBuild(r, res, buildIdJobsCallback) {
 	    return;
 	}
 
-	var etagValue = buildCache.finished_at;
+	var etagValue = branchBuild.finished_at;
 	if (r.ifNoneMatch) {
 	    console.log('Receive ETag from browser: ' + r.ifNoneMatch);
 	    if (r.ifNoneMatch == etagValue) {
@@ -157,6 +154,8 @@ function withBuild(r, res, buildIdJobsCallback) {
 	    } else {
 		console.log('Browser and local etag mismatch -> calulate response');
 	    }
+	} else {
+	    console.log('Local ETag: ' + etagValue);
 	}
 	    
 	var options2 = {
@@ -182,8 +181,6 @@ function withBuild(r, res, buildIdJobsCallback) {
 		    return;
 		}
 
-		console.log("Storing cache: " + options.url)
-		buildCache[options.url] = {'branchBuild': branchBuild, 'jobs': jobs};
 		buildIdJobsCallback(branchBuild, jobs, etagValue);
 	    }
 	});

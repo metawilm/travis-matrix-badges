@@ -35,7 +35,7 @@ app.get("/repos/(*)", function(req, res) {
 
     r.repoBranch = r.user + '/' + r.repo;
     if (r.branch) {
-	repoBranch += '/branches/' + r.branch;
+	r.repoBranch += '/branches/' + r.branch;
     }
     
     var html = "<br/><table><tr><th>Builds</th></tr>";

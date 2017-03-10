@@ -46,7 +46,7 @@ app.get("/repos/(*)", function(req, res) {
     };
     console.log("url: " + options.url)
     request(options, function (error, response, body) {
-	console.log('[' + response.statusCode + '] ' + error + ' ' + body); 
+	console.log('[' + response.statusCode + '] ' + error); 
 	if (error || response.statusCode != 200) {
 	    res.status(400);
 	    res.send('Repository or branch not found: ' + r.repoBranch);
@@ -68,7 +68,7 @@ app.get("/repos/(*)", function(req, res) {
 
 	console.log('url 2: ' + options2.url);
 	request(options2, function (error2, response2, body2) {
-	    console.log('[' + response2.statusCode + '] ' + error2 + ' ' + body2); 
+	    console.log('[' + response2.statusCode + '] ' + error2); 
 	    if (error2 || response2.statusCode != 200) {
 		res.status(400);
 		res.send('Within repository ' + r.repoBranch +
@@ -86,6 +86,10 @@ app.get("/repos/(*)", function(req, res) {
 		var foundMatch = false;
 		    
 		jobs.forEach(function (job) {
+
+		    if (foundMatch) {
+			return;
+		    }
 		    var state = job.state;
 		    var number = job.number;
 		    var dot = number.indexOf(".");
@@ -132,14 +136,14 @@ app.get("/repos/(*)", function(req, res) {
 		    }
 
 		    html += "</table>";
+
+		    screenShot(html, function(original, cleanupScreenShot){
+			writeFileToResponse(original, res, function(){
+			    cleanupScreenShot();
+			});
+		    })
 		}
 	    }
-	    
-	    screenShot(html, function(original, cleanupScreenShot){
-		writeFileToResponse(original, res, function(){
-		    cleanupScreenShot();
-		});
-	    });
 	});
     });
 });
@@ -185,17 +189,16 @@ function screenShot(html, callback){
 function redirectToShieldsIo(state, res) {
   if (state == "passed") {
     redirect("https://img.shields.io/badge/build-passing-brightgreen.svg", state, res)
-  }
-  else if (state == "failed") {
+  } else if (state == "failed") {
     redirect("https://img.shields.io/badge/build-failure-red.svg", state, res);
-  }
-  else {
+  } else {
     var url = "https://img.shields.io/badge/build-" + state + "-yellow.svg";
     redirect(url, state, res);
   }
 }
 
 function redirect(url, state, res) {
+    console.log("redirect: " + url);
   request.get(url, function(err, response, body) {
     if (err) {
       res.status(500).send(err);

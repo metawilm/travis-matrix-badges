@@ -220,7 +220,7 @@ function screenShot(html, callback){
     , siteType:'html'
   }
     webshot(html, original, options, function(err){
-	console.log("webShot: err=" + erro);
+	console.log("webShot: err=" + err);
 	callback(original, function(){
 	    cleanupTempFile(original);
 	});

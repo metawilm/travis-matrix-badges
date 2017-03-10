@@ -15,7 +15,7 @@ app.use(express.static(__dirname + '/public'));
 app.get("/repos/(*)", function(req, res) {
     console.log('WB')
     
-    var r = {'repo': req.query.repo, 'branch': req.query.branch, 'jobNr': req.query.jobNr, 'envContains': envContains };
+    var r = {'repo': req.query.repo, 'branch': req.query.branch, 'jobNr': req.query.jobNr, 'envContains': req.query.envContains };
     console.log('request: ' + request);
     
     r.repoBranch = r.repo + (r.branch ? ('/' + r.branch) : '');

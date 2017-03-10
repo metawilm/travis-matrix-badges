@@ -107,7 +107,7 @@ app.get("/repos/(*)", function(req, res) {
 
 		    if (r.jobNr || r.envContains) {
 			console.log('Found matching job #' + job.number + ' (' + job.state + ') with jobNr=' + shortNumber + ' and env=' + job.config.env);
-			foundMatches.push({'jobNumber': job.number, 'jobState': job.state});
+			foundMatches.push({'jobNumber': job.number, 'jobEnv': job.config.env, 'jobState': job.state});
 		    } else {
 			html += "<tr><td>" + number + "</td>"
 			html += "<td>" + (job.config.env ? job.config.env : '?') + "</td>"

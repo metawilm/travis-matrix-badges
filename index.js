@@ -239,18 +239,19 @@ function redirectToShieldsIo(state, res, etagValue) {
 
 function redirect(url, state, res, etagValue) {
     console.log("redirect: " + url);
-  request.get(url, function(err, response, body) {
-    if (err) {
-      res.status(500).send(err);
-    } else {
-	//res.header("Cache-Control", "no-cache, must-revalidate");
-	//res.header("Pragma", "no-cache");
-	//res.header("Expires", "Thu, 01 Jan 1970 00:00:00 GMT");
-	//res.header("ETag", state);
-	//res.header("content-type", "image/svg+xml;charset=utf-8");
-	res.header("ETag", etagValue);
-	res.status(response.statusCode).send(body);
-    }
-  });
+    request.get(url, function(err, response, body) {
+	if (err) {
+	    console.log("Request failed: " + err + " for: " + url);
+	    res.status(500).send(err);
+	} else {
+	    //res.header("Cache-Control", "no-cache, must-revalidate");
+	    //res.header("Pragma", "no-cache");
+	    //res.header("Expires", "Thu, 01 Jan 1970 00:00:00 GMT");
+	    //res.header("ETag", state);
+	    //res.header("content-type", "image/svg+xml;charset=utf-8");
+	    res.header("ETag", etagValue);
+	    res.status(response.statusCode).send(body);
+	}
+    });
 }
 

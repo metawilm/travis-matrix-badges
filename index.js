@@ -54,7 +54,7 @@ app.get("/badge(*)", function(req, res) {
     });
 });
     
-app.get("/table/(*)", function(req, res) {
+app.get("/table(*)", function(req, res) {
     var r = {'user': req.query.user,
 	     'repo': req.query.repo,
 	     'branch': (req.query.branch || 'master')
@@ -62,7 +62,7 @@ app.get("/table/(*)", function(req, res) {
     console.log('request /table ' + JSON.stringify(r));
     withBuild(r, res, function(buildId, jobs) {
 	
-	var html = '<table><tr><th colspan="3">Last build: ' + branch.finished_at.replace('T', ' ').replace('Z', ' ') + '</th></tr>';
+	var html = '<table><tr><th colspan="3">Last build: ' + r.branch.finished_at.replace('T', ' ').replace('Z', ' ') + '</th></tr>';
 	jobs.forEach(function (job) {
 	    
 	    var number = job.number;

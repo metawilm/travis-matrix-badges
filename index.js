@@ -19,7 +19,7 @@ app.get("/repos/(*)", function(req, res) {
     var r = {'repo': req.query.repo, 'branch': req.query.branch, 'jobNr': req.query.jobNr, 'envContains': envContains };
     console.log('request: ' + request);
     
-    var r.repoBranch = r.repo + (r.branch ? ('/' + r.branch) : '');
+    r.repoBranch = r.repo + (r.branch ? ('/' + r.branch) : '');
     
     var html = "<br/><table><tr><th>Builds</th></tr>";
     var options = {

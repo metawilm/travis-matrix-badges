@@ -14,7 +14,6 @@ app.use(express.static(__dirname + '/public'));
 //  /^\/(.+)/
 app.get("/repos/(*)", function(req, res) {
     console.log('WB')
-    return;
     
     var r = {'repo': req.query.repo, 'branch': req.query.branch, 'jobNr': req.query.jobNr, 'envContains': envContains };
     console.log('request: ' + request);
@@ -114,10 +113,7 @@ app.get("/repos/(*)", function(req, res) {
 		    cleanupScreenShot();
 		});
 	    });
-	}
-		
-	       };
-	
+	});
     });
 });
   

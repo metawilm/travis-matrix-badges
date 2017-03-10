@@ -15,10 +15,15 @@ app.use(express.static(__dirname + '/public'));
 app.get("/repos/(*)", function(req, res) {
     console.log('WB')
     
-    var r = {'user': req.query.user, 'repo': req.query.repo, 'branch': req.query.branch, 'jobNr': req.query.jobNr, 'envContains': req.query.envContains };
+    var r = {'user': req.query.user,
+	     'repo': req.query.repo,
+	     'branch': (req.query.branch || 'master'),
+	     'jobNr': req.query.jobNr,
+	     'envContains': req.query.envContains
+	    };
     console.log('request: ' + JSON.stringify(r));
 
-    if (!r.repo) {
+    if (!r.user) {
 	res.status(400);
 	res.send('Username not provided (query string param: "user")');
     }
@@ -27,8 +32,8 @@ app.get("/repos/(*)", function(req, res) {
 	res.status(400);
 	res.send('Repository not provided (query string param: "repo")');
     }
-    
-    r.repoBranch = r.user + '/' + r.repo + (r.branch ? ('/' + r.branch) : '');
+
+    r.repoBranch = r.user + '/' + r.repo + '/' + r.branch;
     
     var html = "<br/><table><tr><th>Builds</th></tr>";
     var options = {

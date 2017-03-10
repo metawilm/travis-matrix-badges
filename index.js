@@ -214,7 +214,7 @@ function screenShot(html, callback){
   var original = createTempPng();
   var options = {
     shotSize: {
-      width: 'all'
+      width: '250l'
     , height: 'all' 
     }
     , siteType:'html'

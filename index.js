@@ -81,7 +81,7 @@ app.get("/repos/(*)", function(req, res) {
 			     ' the build ' + buildIdNo + ' has no jobs');
 		}
 
-		var html = '<table><tr><th>Build #' + buildNo + ' (' + branch.finished_at + '</th></tr>';
+		var html = '<table><tr><th>Build #' + buildId + ' (' + branch.finished_at + '</th></tr>';
 		
 		jobs.forEach(function (job) {
 		    var state = job.state;

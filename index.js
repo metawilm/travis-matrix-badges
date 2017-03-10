@@ -26,11 +26,13 @@ app.get("/repos/(*)", function(req, res) {
     if (!r.user) {
 	res.status(400);
 	res.send('Username not provided (query string param: "user")');
+	return;
     }
 
     if (!r.repo) {
 	res.status(400);
 	res.send('Repository not provided (query string param: "repo")');
+	return;
     }
 
     r.repoBranch = r.user + '/' + r.repo;
@@ -50,6 +52,7 @@ app.get("/repos/(*)", function(req, res) {
 	if (error || response.statusCode != 200) {
 	    res.status(400);
 	    res.send('Repository or branch not found: ' + r.repoBranch);
+	    return;
 	}
 	
 	var branch = JSON.parse(body).branch;
@@ -57,6 +60,7 @@ app.get("/repos/(*)", function(req, res) {
 	if (!buildId){
 	    res.status(400);
 	    res.send('Within repository ' + r.repoBranch + ' no Travis build was found');
+	    return;
 	}
 	
 	var options2 = {
@@ -73,12 +77,14 @@ app.get("/repos/(*)", function(req, res) {
 		res.status(400);
 		res.send('Within repository ' + r.repoBranch +
 			 ' could not retrieve build details for buildId ' + buildId);
+		return;
 	    } else {
 		var jobs = JSON.parse(body2).jobs;
 		if (!jobs){
 		    res.status(400);
 		    res.send('Within repository ' + r.repoBranch +
 			     ' the build ' + buildIdNo + ' has no jobs');
+		    return;
 		}
 
 		var html = '<table><tr><th colspan="3">Last build: ' + branch.finished_at + '</th></tr>';
@@ -129,10 +135,12 @@ app.get("/repos/(*)", function(req, res) {
 		    if (r.jobNr) {
 			res.status(400);
 			res.send('jobNr ' + r.jobNr + ' not found, within buildId: ' + buildId);
+			return;
 		    }
 		    if (r.envContains) {
 			res.status(400);
 			res.send('No job has "' + r.envContains + '" in its env, within buildId: ' + buildId);
+			return;
 		    }
 
 		    html += "</table>";
@@ -202,14 +210,14 @@ function redirect(url, state, res) {
   request.get(url, function(err, response, body) {
     if (err) {
       res.status(500).send(err);
-      return;
+    } else {
+	res.header("Cache-Control", "no-cache, must-revalidate");
+	res.header("Pragma", "no-cache");
+	res.header("Expires", "Thu, 01 Jan 1970 00:00:00 GMT");
+	res.header("ETag", state);
+	res.header("content-type", "image/svg+xml;charset=utf-8");
+	res.status(response.statusCode).send(body);
     }
-    res.header("Cache-Control", "no-cache, must-revalidate");
-    res.header("Pragma", "no-cache");
-    res.header("Expires", "Thu, 01 Jan 1970 00:00:00 GMT");
-    res.header("ETag", state);
-    res.header("content-type", "image/svg+xml;charset=utf-8");
-    res.status(response.statusCode).send(body);
   });
 }
 

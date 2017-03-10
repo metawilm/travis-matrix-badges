@@ -99,6 +99,9 @@ app.get("/table(*)", function(req, res) {
     });
 });
 
+// Mapping: url -> {'branchBuild.Finished_at': '<datetime>', 'jobs': jobs}
+var buildCache = {};
+
 function withBuild(r, res, buildIdJobsCallback) {
     if (!r.user) {
 	res.status(400);
@@ -114,13 +117,14 @@ function withBuild(r, res, buildIdJobsCallback) {
     if (r.branch) {
 	r.repoBranch += '/branches/' + r.branch;
     }
+
     var options = {
 	url: "https://api.travis-ci.org/repos/" + r.repoBranch,
 	headers: {
             'Accept': 'application/vnd.travis-ci.2+json'
 	}
     };
-    
+
     console.log("url: " + options.url)
     request(options, function (error, response, body) {
 	
@@ -130,12 +134,19 @@ function withBuild(r, res, buildIdJobsCallback) {
 	    res.send('User, repository or branch not found: ' + r.repoBranch);
 	    return;
 	}
-	
+
 	var branchBuild = JSON.parse(body).branch;
 	var buildId = branchBuild.id;
 	if (!buildId){
 	    res.status(400);
 	    res.send('Within repository ' + r.repoBranch + ' no Travis build was found');
+	    return;
+	}
+
+	var cached = buildCache[options.url];
+	if (cached && (cached.branchBuild == branchBuild)) {
+	    console.log("Using cache: " + options.url);
+	    buildIdJobsCallback(branchBuild, cached.jobs);
 	    return;
 	}
 	
@@ -162,6 +173,8 @@ function withBuild(r, res, buildIdJobsCallback) {
 		    return;
 		}
 
+		console.log("Storing cache: " + options.url)
+		buildCache[options.url] = {'branchBuild': branchBuild, 'jobs': jobs};
 		buildIdJobsCallback(branchBuild, jobs);
 	    }
 	});

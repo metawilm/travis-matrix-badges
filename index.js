@@ -17,7 +17,7 @@ app.get("/badge(*)", function(req, res) {
 	     'branch': (req.query.branch || 'master'),
 
 	     'jobNr': req.query.jobNr,
-	     'envContains': req.query.envContains
+	     'envContains': req.query.envContains,
 	     
 	     'ifNoneMatch': req.get('If-None-Match'),
 	    };
@@ -148,12 +148,17 @@ function withBuild(r, res, buildIdJobsCallback) {
 	}
 
 	var etagValue = buildCache.finished_at;
-	if (r.ifNoneMatch && (r.ifNoneMatch == etagValue)) {
-	    console.log('Etag the same -> return 304: ' + etagValue);
-	    res.status(304);
-	    return;
+	if (r.ifNoneMatch) {
+	    console.log('Receive ETag from browser: ' + r.ifNoneMatch);
+	    if (r.ifNoneMatch == etagValue) {
+		console.log('Etag the same -> return 304: ' + etagValue);
+		res.status(304);
+		return;
+	    } else {
+		console.log('Browser and local etag mismatch -> calulate response');
+	    }
 	}
-	
+	    
 	var options2 = {
 	    url: "https://api.travis-ci.org/builds/" + buildId,
 	    headers: {

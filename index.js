@@ -18,8 +18,10 @@ app.get("/badge(*)", function(req, res) {
 	     'jobNr': req.query.jobNr,
 	     'envContains': req.query.envContains
 	    };
+    
     console.log('request /badge ' + JSON.stringify(r));
     withBuild(r, res, function(branchBuild, jobs) {
+	
 	var foundMatches = [];
 	jobs.forEach(function (job) {
 	    var number = job.number;
@@ -59,6 +61,7 @@ app.get("/table(*)", function(req, res) {
 	     'repo': req.query.repo,
 	     'branch': (req.query.branch || 'master')
 	    };
+    
     console.log('request /table ' + JSON.stringify(r));
     withBuild(r, res, function(branchBuild, jobs) {
 	
@@ -121,10 +124,10 @@ function withBuild(r, res, buildIdJobsCallback) {
     console.log("url: " + options.url)
     request(options, function (error, response, body) {
 	
-	console.log('[' + response.statusCode + '] ' + error); 
+	console.log('[' + response.statusCode + '] ' + error + ' ' + body);
 	if (error || response.statusCode != 200) {
 	    res.status(400);
-	    res.send('Repository or branch not found: ' + r.repoBranch);
+	    res.send('User, repository or branch not found: ' + r.repoBranch);
 	    return;
 	}
 	

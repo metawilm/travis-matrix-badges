@@ -253,6 +253,7 @@ function redirectToShieldsError(errorMsg, res) {
 
 function redirect(url, res, etagValue) {
     console.log("redirect: " + url);
+    url = url.replace(' ', '%20');
     request.get(url, function(err, response, body) {
 	var ct = response.headers['content-type'];
 	console.log("Response: " + response.statusCode + ' ' + ct);

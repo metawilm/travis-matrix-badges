@@ -248,12 +248,15 @@ function redirectToShieldsIo(state, res, etagValue, label) {
 function redirect(url, state, res, etagValue) {
     console.log("redirect: " + url);
     request.get(url, function(err, response, body) {
+	var ct = response.headers['content-type'];
 	console.log("Response: " + response.statusCode);
 	if (err || ((response.statusCode / 100) != 2)) {
 	    console.log("Request failed: status=" + response.statusCode + " err=" + err + " for: " + url);
 	    res.status(500).send(err);
 	} else {
-	    res.header("content-type", response.contentType); //"image/svg+xml;charset=utf-8");
+	    if (ct) {
+		res.header("content-type", ct); // Expect "image/svg+xml;charset=utf-8");
+	    }
 	    res.header("ETag", etagValue);
 	    res.status(response.statusCode).send(body);
 	}

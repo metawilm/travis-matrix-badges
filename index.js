@@ -145,6 +145,8 @@ function withBuild(r, res, buildIdJobsCallback) {
 	    return;
 	}
 
+	console.log("branchBuild.finished_at=" + branchBuild.finished_at);
+	console.log("branchBuild.started_at=" + branchBuild.started_at);
 	var etagValue = branchBuild.finished_at;
 	if (etagValue == 'null') {
 	    // build in progress

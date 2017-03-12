@@ -41,7 +41,7 @@ app.get("/badge(*)", function(req, res) {
 	    }
 
 	    if (r.jobNr || r.envContains) {
-		console.log('Found matching job #' + job.number + ' (' + job.state + ') with jobNr=' + shortNumber + ' and env="' + job.config.env) + '"';
+		console.log('Found matching job #' + job.number + ' (' + job.state + ') with jobNr=' + shortNumber + ' and env="' + job.config.env + '"');
 		foundMatches.push({'jobNumber': job.number, 'jobEnv': job.config.env, 'jobState': job.state});
 	    }
 	});

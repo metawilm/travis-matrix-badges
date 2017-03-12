@@ -247,7 +247,7 @@ function redirectToShieldsIo(state, res, etagValue, label) {
 }
 
 function redirectToShieldsError(errorMsg, res) {
-    var etagValue = '' + new Date().getTime();
+    var etagValue = '' + new Date().getTime(); 
     redirect("https://img.shields.io/badge/" + errorMsg + "-badge url error-red.png", res, etagValue);
 }
 

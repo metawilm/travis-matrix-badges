@@ -48,7 +48,7 @@ app.get("/badge(*)", function(req, res) {
 
 	if (foundMatches.length > 1) {
 	    console.log('Ambiguous filter params: multiple matching jobs within buildId=' + branchBuild.buildId + ': ' + JSON.stringify(foundMatches));
-	    redirectToShieldsError('multiple matching build jobss', res);
+	    redirectToShieldsError('multiple matching build jobs', res);
 	} else if (foundMatches.length == 0) {
 	    console.log('Too strict filter params: no matching jobs within buildId=' + branchBuild.buildId + '.');
 	    redirectToShieldsError('no matching build job', res);

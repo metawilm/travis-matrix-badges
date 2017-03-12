@@ -145,7 +145,7 @@ function withBuild(r, res, buildIdJobsCallback) {
 	    return;
 	}
 
-	var etagValue = branchBuild.finished_at;
+	var etagValue = branchBuild.finished_at || branchBuild.started_at;
 	if (r.ifNoneMatch) {
 	    console.log('Receive ETag from browser: ' + r.ifNoneMatch);
 	    if (r.ifNoneMatch == etagValue) {

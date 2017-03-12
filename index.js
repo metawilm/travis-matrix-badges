@@ -47,13 +47,11 @@ app.get("/badge(*)", function(req, res) {
 	});
 
 	if (foundMatches.length > 1) {
-	    res.status(400);
-	    res.send('Ambiguous filter params: multiple matching jobs within buildId=' + branchBuild.buildId + ': ' + JSON.stringify(foundMatches));
-	    return;
+	    console.log('Ambiguous filter params: multiple matching jobs within buildId=' + branchBuild.buildId + ': ' + JSON.stringify(foundMatches));
+	    redirectToShieldsError('multiple matching build jobss', res);
 	} else if (foundMatches.length == 0) {
-	    res.status(400);
-	    res.send('Too strict filter params: no matching jobs within buildId=' + branchBuild.buildId + '.');
-	    return;
+	    console.log('Too strict filter params: no matching jobs within buildId=' + branchBuild.buildId + '.');
+	    redirectToShieldsError('no matching build job', res);
 	} else {
 	    redirectToShieldsIo(foundMatches[0].jobState, res, etagValue, r.label);
 	}
@@ -245,10 +243,15 @@ function redirectToShieldsIo(state, res, etagValue, label) {
 	url += state + "-yellow";
     }
     url += ".svg";
-    redirect(url, state, res, etagValue);
+    redirect(url, res, etagValue);
 }
 
-function redirect(url, state, res, etagValue) {
+function redirectToShieldsError(errorMsg, res) {
+    var etagValue = '' + getTime();
+    redirect("https://img.shields.io/badge/" + errorMsg + "-badge url error-red", res, etagValue);
+}
+
+function redirect(url, res, etagValue) {
     console.log("redirect: " + url);
     request.get(url, function(err, response, body) {
 	var ct = response.headers['content-type'];

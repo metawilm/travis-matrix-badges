@@ -241,6 +241,7 @@ function redirectToShieldsIo(state, res, etagValue, label) {
     } else {
 	url += state + "-" + yellow;
     }
+    url += ".svg";
     redirect(url, state, res, etagValue);
 }
 

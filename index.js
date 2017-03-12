@@ -259,12 +259,14 @@ function redirect(url, res, etagValue) {
 	console.log("Response: " + response.statusCode + ' ' + ct);
 	if (err || ((response.statusCode / 100) != 2)) {
 	    console.log("Request failed: status=" + response.statusCode + " err=" + err + " for: " + url);
+	    res.header("ETag", '' + new Date().getTime());
 	    res.status(500).send(err);
 	} else {
-	    // https://github.com/github/markup/issues/224
 	    if (ct) {
 		res.header("content-type", ct); // Expect "image/svg+xml;charset=utf-8");
 	    }
+	    // Prevent image caching by setting ETag value -- https://github.com/github/markup/issues/224
+	    res.header("Cache-Control", "no-cache");
 	    res.header("ETag", etagValue);
 	    res.status(response.statusCode).send(body);
 	}

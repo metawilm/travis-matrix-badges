@@ -240,30 +240,38 @@ function redirectToShieldsIo(state, res, etagValue, label) {
     redirect(url, res, etagValue);
 }
 
+
+function getDummyEtag() {
+    return 'dummy' + new Date().getTime();
+}
+
 function redirectToShieldsError(errorMsg, res) {
-    var etagValue = '' + new Date().getTime();
-    redirect("https://img.shields.io/badge/" + errorMsg + "-badge url error-red.svg", res, etagValue);
+    redirect("https://img.shields.io/badge/" + errorMsg + "-badge url error-red.svg", res, getDummyEtag());
 }
 
 function redirect(url, res, etagValue) {
     console.log("redirect: " + url);
 
-    // Prevent image caching. Also set ETag below -- https://github.com/github/markup/issues/224
-    res.header("Cache-Control", "no-cache, must-revalidate");
-    res.header("Pragma", "no-cache");
-    res.header("Expires", "Thu, 01 Jan 1970 00:00:00 GMT");
-    
+    // Prevent image caching at Github side:
+    //
+    //   .. make sure the image has the "Cache-Control: no-cache" header,
+    //   and either "Expires", "Last-Modified" or "Etag".
+    //      -- https://github.com/github/markup/issues/224#issuecomment-48532178
+    //
+    res.header("Cache-Control", "no-cache");
+    // and set ETag below
+        
     url = url.split(' ').join('%20');
     request.get(url, function(err, response, body) {
 	var ct = response.headers['content-type'];
 	console.log("Response: " + response.statusCode + ' ' + ct);
 	if (err || ((response.statusCode / 100) != 2)) {
 	    console.log("Request failed: status=" + response.statusCode + " err=" + err + " for: " + url);
-	    res.header("ETag", '' + new Date().getTime());
+	    res.header("ETag", getDummyEtag());
 	    res.status(500).send(err);
 	} else {
 	    if (ct) {
-		res.header("content-type", ct); // Expect "image/svg+xml;charset=utf-8");
+		res.header("content-type", ct); // Expect: "image/svg+xml;charset=utf-8");
 	    }
 	    res.header("ETag", etagValue);
 	    res.status(response.statusCode).send(body);

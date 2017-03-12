@@ -68,7 +68,7 @@ app.get("/table(*)", function(req, res) {
     console.log('request /table ' + JSON.stringify(r));
     withBuild(r, res, function(branchBuild, jobs, etagValue) {
 	
-	var html = '<table id="myTable"><tr><th colspan="3">Last build: ' + branchBuild.finished_at.replace('T', ' ').replace('Z', ' ') + '</th></tr>';
+	var html = '<table id="myTable"><tr><th colspan="3">Last build: ' + (branchBuild.finished_at || branchBuild.started_at).replace('T', ' ').replace('Z', ' ') + '</th></tr>';
 	jobs.forEach(function (job) {
 	    
 	    var number = job.number;

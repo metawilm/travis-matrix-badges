@@ -18,6 +18,7 @@ app.get("/badge(*)", function(req, res) {
 
 	     'jobNr': req.query.jobNr,
 	     'envContains': req.query.envContains,
+	     'label': req.query.label,
 	     
 	     'ifNoneMatch': req.get('If-None-Match')
 	    };
@@ -54,7 +55,7 @@ app.get("/badge(*)", function(req, res) {
 	    res.send('Too strict filter params: no matching jobs within buildId=' + branchBuild.buildId + '.');
 	    return;
 	} else {
-	    redirectToShieldsIo(foundMatches[0].jobState, res, etagValue);
+	    redirectToShieldsIo(foundMatches[0].jobState, res, etagValue, r.label);
 	}
     });
 });
@@ -228,30 +229,30 @@ function screenShot(html, callback){
     });
 }
 
-function redirectToShieldsIo(state, res, etagValue) {
-  if (state == "passed") {
-      redirect("https://img.shields.io/badge/build-passing-brightgreen.svg", state, res, etagValue)
-  } else if (state == "failed") {
-      redirect("https://img.shields.io/badge/build-failure-red.svg", state, res, etagValue);
-  } else {
-    var url = "https://img.shields.io/badge/build-" + state + "-yellow.svg";
-      redirect(url, state, res, etagValue);
-  }
+function redirectToShieldsIo(state, res, etagValue, label) {
+    if (!label) {
+	label = 'build';
+    }
+    var url = "https://img.shields.io/badge/" + label + "-";
+    if (state == "passed") {
+	url += "passed-brightgreen";
+    } else if (state == "failed") {
+	url += "failed-red";
+    } else {
+	url += state + "-" + yellow;
+    }
+    redirect(url, state, res, etagValue);
 }
 
 function redirect(url, state, res, etagValue) {
     console.log("redirect: " + url);
     request.get(url, function(err, response, body) {
 	console.log("Response: " + response.statusCode);
-	if (err) {
-	    console.log("Request failed: " + err + " for: " + url);
+	if (err || ((response.statusCode / 100) != 2)) {
+	    console.log("Request failed: status=" + response.statusCode + " err=" + err + " for: " + url);
 	    res.status(500).send(err);
 	} else {
-	    //res.header("Cache-Control", "no-cache, must-revalidate");
-	    //res.header("Pragma", "no-cache");
-	    //res.header("Expires", "Thu, 01 Jan 1970 00:00:00 GMT");
-	    //res.header("ETag", state);
-	    res.header("content-type", "image/svg+xml;charset=utf-8");
+	    res.header("content-type", response.contentType); //"image/svg+xml;charset=utf-8");
 	    res.header("ETag", etagValue);
 	    res.status(response.statusCode).send(body);
 	}

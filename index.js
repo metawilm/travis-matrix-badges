@@ -233,6 +233,8 @@ function redirectToShieldsIo(state, res, etagValue, label) {
 	url += "passed-brightgreen";
     } else if (state == "failed") {
 	url += "failed-red";
+    } else if (state == "errored") {
+	url += "errored-red";
     } else {
 	url += state + "-yellow";
     }

@@ -247,6 +247,12 @@ function redirectToShieldsError(errorMsg, res) {
 
 function redirect(url, res, etagValue) {
     console.log("redirect: " + url);
+
+    // Prevent image caching. Also set ETag below -- https://github.com/github/markup/issues/224
+    res.header("Cache-Control", "no-cache, must-revalidate");
+    res.header("Pragma", "no-cache");
+    res.header("Expires", "Thu, 01 Jan 1970 00:00:00 GMT");
+    
     url = url.split(' ').join('%20');
     request.get(url, function(err, response, body) {
 	var ct = response.headers['content-type'];
@@ -259,8 +265,6 @@ function redirect(url, res, etagValue) {
 	    if (ct) {
 		res.header("content-type", ct); // Expect "image/svg+xml;charset=utf-8");
 	    }
-	    // Prevent image caching by setting ETag value -- https://github.com/github/markup/issues/224
-	    res.header("Cache-Control", "no-cache");
 	    res.header("ETag", etagValue);
 	    res.status(response.statusCode).send(body);
 	}

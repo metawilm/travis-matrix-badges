@@ -41,7 +41,7 @@ app.get("/badge(*)", function(req, res) {
 	    }
 
 	    if (r.jobNr || r.envContains) {
-		console.log('Found matching job #' + job.number + ' (' + job.state + ') with jobNr=' + shortNumber + ' and env=' + job.config.env);
+		console.log('Found matching job #' + job.number + ' (' + job.state + ') with jobNr=' + shortNumber + ' and env="' + job.config.env) + '"';
 		foundMatches.push({'jobNumber': job.number, 'jobEnv': job.config.env, 'jobState': job.state});
 	    }
 	});
@@ -125,10 +125,8 @@ function withBuild(r, res, buildIdJobsCallback) {
 	}
     };
 
-    console.log("url: " + options.url)
     request(options, function (error, response, body) {
-	
-	console.log('[' + response.statusCode + '] ' + error + ' ' + body);
+	console.log("url: " + options.url + ' -> [' + response.statusCode + '] ' + error);
 	if (error || response.statusCode != 200) {
 	    res.status(400);
 	    res.send('User, repository or branch not found: ' + r.repoBranch);
@@ -143,9 +141,9 @@ function withBuild(r, res, buildIdJobsCallback) {
 	    return;
 	}
 
-	console.log("branchBuild.finished_at=" + branchBuild.finished_at);
-	console.log("branchBuild.started_at=" + branchBuild.started_at);
+	
 	var etagValue = branchBuild.finished_at || branchBuild.started_at;
+	console.log("branchBuild: started_at=" + branchBuild.started_at + " finished_at=" + branchBuild.finished_at + " -> local ETag=" + etagValue);
 	
 	if (r.ifNoneMatch) {
 	    console.log('Receive ETag from browser: ' + r.ifNoneMatch);
@@ -157,8 +155,6 @@ function withBuild(r, res, buildIdJobsCallback) {
 	    } else {
 		console.log('Browser and local etag mismatch -> calulate response');
 	    }
-	} else {
-	    console.log('Local ETag: ' + etagValue);
 	}
 	    
 	var options2 = {
@@ -168,10 +164,8 @@ function withBuild(r, res, buildIdJobsCallback) {
 	    }
 	};
 
-	console.log('url 2: ' + options2.url);
 	request(options2, function (error2, response2, body2) {
-	    
-	    console.log('[' + response2.statusCode + '] ' + error2); 
+	    console.log('url 2: ' + options2.url + ' -> [' + response2.statusCode + '] ' + error2); 
 	    if (error2 || response2.statusCode != 200) {
 		res.status(400);
 		res.send('Within repository ' + r.repoBranch + ' could not retrieve build details for buildId ' + buildId);
